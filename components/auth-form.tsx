@@ -17,7 +17,6 @@ export function AuthForm({ mode = 'sign-in' }: { mode?: 'sign-in' | 'sign-up' })
     setLoading(true)
     window.setTimeout(() => {
       router.push('/')
-      router.refresh()
     }, 300)
   }
 
