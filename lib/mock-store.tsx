@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   IVA_PORCENTAJE,
   seedClientes,
@@ -11,6 +11,7 @@ import {
   seedSalidas,
   seedUsuarios,
   seedVentas,
+  LOGIN_ALIASES,
   type Cliente,
   type Compra,
   type EntradaMercancia,
@@ -110,13 +111,10 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionUsuario | null>(null)
   const [sessionReady, setSessionReady] = useState(false)
 
-  useState(() => {
-    if (typeof window !== 'undefined') {
-      setSession(readSession())
-      setSessionReady(true)
-    }
-    return null
-  })
+  useEffect(() => {
+    setSession(readSession())
+    setSessionReady(true)
+  }, [])
 
   const persistSession = useCallback((value: SessionUsuario | null) => {
     setSession(value)
@@ -127,7 +125,8 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback<MockStoreValue['login']>((usuarioInput, password) => {
     const usuarioLower = usuarioInput.trim().toLowerCase()
-    const encontrado = usuarios.find((u) => u.usuario.toLowerCase() === usuarioLower)
+    const usuarioClave = LOGIN_ALIASES[usuarioLower] ?? usuarioLower
+    const encontrado = usuarios.find((u) => u.usuario.toLowerCase() === usuarioClave)
     if (!encontrado || encontrado.password !== password || !encontrado.activo) {
       return { ok: false, error: 'Usuario o contraseña incorrectos. Verifica tus credenciales e intenta de nuevo.' }
     }

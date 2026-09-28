@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { session, sessionReady } = useMockStore()
 
   useEffect(() => {
-    if (sessionReady && !session) router.replace('/sign-in')
+    if (sessionReady && !session) router.replace('/iniciar-sesion')
   }, [sessionReady, session, router])
 
   if (!sessionReady || !session) {

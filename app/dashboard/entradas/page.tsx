@@ -27,6 +27,7 @@ export default function EntradasPage() {
     const form = new FormData(event.currentTarget)
     const cantidad = Number(form.get('cantidad'))
     const observacion = String(form.get('observacion') ?? '').trim()
+    const fecha = String(form.get('fecha') ?? '').trim() || new Date().toISOString().slice(0, 10)
 
     if (!productoId || !proveedorId) {
       setError('Por favor complete los campos obligatorios.')
@@ -37,12 +38,13 @@ export default function EntradasPage() {
       return
     }
 
-    const resultado = addEntrada({ productoId, proveedorId, cantidad, observacion, fecha: new Date().toISOString().slice(0, 10) })
+    const resultado = addEntrada({ productoId, proveedorId, cantidad, observacion, fecha })
     if (!resultado.ok) {
       setError(resultado.error ?? 'No se pudo registrar la entrada.')
       return
     }
-    toast.success('Entrada de mercancía registrada.')
+    const producto = productos.find((p) => p.id === productoId)
+    toast.success(`Inventario actualizado. Nuevo stock: ${(producto?.stock ?? 0) + cantidad} unidades.`)
     event.currentTarget.reset()
     setProductoId('')
     setProveedorId('')
@@ -95,6 +97,10 @@ export default function EntradasPage() {
               <div className="grid gap-2">
                 <Label htmlFor="cantidad">Cantidad</Label>
                 <Input id="cantidad" name="cantidad" type="number" min={1} placeholder="Ej. 20" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="fecha">Fecha</Label>
+                <Input id="fecha" name="fecha" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="observacion">Observación</Label>

@@ -49,7 +49,7 @@ export function ProductoForm({ producto }: { producto?: Producto }) {
       setError(resultado.error ?? 'No se pudo guardar el producto.')
       return
     }
-    toast.success(producto ? 'Prenda actualizada correctamente.' : 'Prenda registrada correctamente.')
+    toast.success(producto ? 'Producto actualizado' : 'Producto registrado')
     router.push('/dashboard/inventario')
   }
 

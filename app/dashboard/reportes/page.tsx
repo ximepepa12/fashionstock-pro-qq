@@ -1,52 +1,56 @@
 'use client'
 
-import { useMemo } from 'react'
-import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis } from 'recharts'
+import { useMemo, useState } from 'react'
+import { Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { AccessDenied } from '@/components/dashboard/access-denied'
-import { formatCOP } from '@/lib/format'
+import { StockBadge } from '@/components/dashboard/stock-badge'
+import { formatCOP, formatDate } from '@/lib/format'
 import { useMockStore } from '@/lib/mock-store'
+import { toast } from 'sonner'
 
-const chartConfig: ChartConfig = {
-  total: { label: 'Ventas', color: 'var(--chart-1)' },
-  cantidad: { label: 'Unidades', color: 'var(--chart-2)' },
-}
+const VISTAS = [
+  { id: 'inventario', label: 'Inventario disponible' },
+  { id: 'bajo-stock', label: 'Bajo stock' },
+  { id: 'mas-vendidos', label: 'Más vendidos' },
+  { id: 'ventas', label: 'Ventas por fechas' },
+  { id: 'compras', label: 'Compras y entradas' },
+] as const
+
+type Vista = (typeof VISTAS)[number]['id']
 
 export default function ReportesPage() {
-  const { session, ventas, productos, compras } = useMockStore()
+  const { session, ventas, productos, compras, entradas, proveedores } = useMockStore()
+  const [vista, setVista] = useState<Vista>('inventario')
+  const [desde, setDesde] = useState('')
+  const [hasta, setHasta] = useState('')
 
-  const ventasPorDia = useMemo(() => {
-    const mapa = new Map<string, number>()
-    for (const venta of ventas) {
-      mapa.set(venta.fecha, (mapa.get(venta.fecha) ?? 0) + venta.total)
-    }
-    return Array.from(mapa.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-14)
-      .map(([fecha, total]) => ({ fecha: fecha.slice(5), total }))
-  }, [ventas])
+  const ventasFiltradas = useMemo(() => {
+    return ventas.filter((venta) => {
+      if (desde && venta.fecha < desde) return false
+      if (hasta && venta.fecha > hasta) return false
+      return true
+    })
+  }, [ventas, desde, hasta])
 
   const topProductos = useMemo(() => {
     const mapa = new Map<string, number>()
-    for (const venta of ventas) {
+    for (const venta of ventasFiltradas) {
       for (const linea of venta.lineas) {
         mapa.set(linea.productoId, (mapa.get(linea.productoId) ?? 0) + linea.cantidad)
       }
     }
     return Array.from(mapa.entries())
       .map(([productoId, cantidad]) => ({
-        nombre: productos.find((p) => p.id === productoId)?.nombre ?? 'Prenda eliminada',
+        producto: productos.find((p) => p.id === productoId),
         cantidad,
       }))
       .sort((a, b) => b.cantidad - a.cantidad)
-      .slice(0, 6)
-  }, [ventas, productos])
-
-  const totalVentas = ventas.reduce((sum, v) => sum + v.total, 0)
-  const totalCompras = compras.reduce((sum, c) => sum + c.total, 0)
-  const ticketPromedio = ventas.length > 0 ? Math.round(totalVentas / ventas.length) : 0
+  }, [ventasFiltradas, productos])
 
   if (!session) return null
 
@@ -59,72 +63,230 @@ export default function ReportesPage() {
     )
   }
 
+  function exportar() {
+    toast.success('En el prototipo la exportación es visual. El reporte ya está listo para consulta.')
+  }
+
   return (
     <div>
-      <PageHeader title="Reportes" description="Analiza el desempeño de ventas, compras e inventario." />
+      <PageHeader
+        title="Reportes"
+        description="Consulta inventario, ventas, compras y entradas de demostración."
+        actions={
+          <Button variant="outline" className="gap-2" onClick={exportar}>
+            <Download className="size-4" />
+            Exportar
+          </Button>
+        }
+      />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <Card className="border-slate-100 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Ventas totales</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-800">{formatCOP(totalVentas)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-100 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Ticket promedio</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-800">{formatCOP(ticketPromedio)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-100 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Compras totales</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-800">{formatCOP(totalCompras)}</p>
-          </CardContent>
-        </Card>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {VISTAS.map((item) => (
+          <Button
+            key={item.id}
+            type="button"
+            variant={vista === item.id ? 'default' : 'outline'}
+            className={vista === item.id ? 'bg-[#4f46e5] hover:bg-[#4338ca]' : ''}
+            onClick={() => setVista(item.id)}
+          >
+            {item.label}
+          </Button>
+        ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {vista === 'inventario' && (
         <Card className="border-slate-100 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-slate-700">Ventas por día</CardTitle>
+            <CardTitle className="text-base">Inventario disponible</CardTitle>
           </CardHeader>
           <CardContent>
-            {ventasPorDia.length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-400">Sin datos de ventas para graficar.</p>
-            ) : (
-              <ChartContainer config={chartConfig} className="h-64 w-full">
-                <LineChart data={ventasPorDia} margin={{ left: 12, right: 12 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="fecha" tickLine={false} axisLine={false} tickMargin={8} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line dataKey="total" type="monotone" stroke="var(--color-total)" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ChartContainer>
-            )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Prenda</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Talla</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productos.map((producto) => (
+                  <TableRow key={producto.id}>
+                    <TableCell className="font-medium text-slate-700">{producto.nombre}</TableCell>
+                    <TableCell className="text-slate-500">{producto.categoria}</TableCell>
+                    <TableCell className="text-slate-500">{producto.talla}</TableCell>
+                    <TableCell className="text-right">{producto.stock}</TableCell>
+                    <TableCell>
+                      <StockBadge stock={producto.stock} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
+      )}
 
+      {vista === 'bajo-stock' && (
         <Card className="border-slate-100 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-slate-700">Prendas más vendidas</CardTitle>
+            <CardTitle className="text-base">Prendas con bajo stock o agotadas</CardTitle>
           </CardHeader>
           <CardContent>
-            {topProductos.length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-400">Sin datos de ventas para graficar.</p>
-            ) : (
-              <ChartContainer config={chartConfig} className="h-64 w-full">
-                <BarChart data={topProductos} margin={{ left: 12, right: 12 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="nombre" tickLine={false} axisLine={false} tickMargin={8} tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="cantidad" fill="var(--color-cantidad)" radius={4} />
-                </BarChart>
-              </ChartContainer>
-            )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Prenda</TableHead>
+                  <TableHead>Talla</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productos
+                  .filter((p) => p.stock <= 5)
+                  .map((producto) => (
+                    <TableRow key={producto.id}>
+                      <TableCell className="font-medium text-slate-700">{producto.nombre}</TableCell>
+                      <TableCell className="text-slate-500">{producto.talla}</TableCell>
+                      <TableCell className="text-right">{producto.stock}</TableCell>
+                      <TableCell>
+                        <StockBadge stock={producto.stock} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {vista === 'mas-vendidos' && (
+        <Card className="border-slate-100 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Prendas más vendidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Prenda</TableHead>
+                  <TableHead className="text-right">Unidades vendidas</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {topProductos.map((item) => (
+                  <TableRow key={item.producto?.id ?? item.cantidad}>
+                    <TableCell className="font-medium text-slate-700">{item.producto?.nombre ?? 'Prenda eliminada'}</TableCell>
+                    <TableCell className="text-right">{item.cantidad}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {vista === 'ventas' && (
+        <Card className="border-slate-100 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Ventas por rango de fechas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+              <Input type="date" value={desde} onChange={(event) => setDesde(event.target.value)} aria-label="Fecha desde" />
+              <Input type="date" value={hasta} onChange={(event) => setHasta(event.target.value)} aria-label="Fecha hasta" />
+            </div>
+            <p className="mb-3 text-sm text-slate-500">
+              Total del rango: {formatCOP(ventasFiltradas.reduce((sum, v) => sum + v.total, 0))}
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Factura</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ventasFiltradas.map((venta) => (
+                  <TableRow key={venta.id}>
+                    <TableCell className="font-medium text-slate-700">{venta.numeroFactura}</TableCell>
+                    <TableCell className="text-slate-500">{formatDate(venta.fecha)}</TableCell>
+                    <TableCell className="text-right">{formatCOP(venta.total)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {vista === 'compras' && (
+        <div className="grid gap-4">
+          <Card className="border-slate-100 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Compras a proveedores</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Proveedor</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {compras.map((compra) => (
+                    <TableRow key={compra.id}>
+                      <TableCell className="font-medium text-slate-700">
+                        {proveedores.find((p) => p.id === compra.proveedorId)?.nombre ?? 'Proveedor'}
+                      </TableCell>
+                      <TableCell className="text-slate-500">{formatDate(compra.fecha)}</TableCell>
+                      <TableCell className="text-slate-500">{compra.estado}</TableCell>
+                      <TableCell className="text-right">{formatCOP(compra.total)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-100 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Entradas de mercancía</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Prenda</TableHead>
+                    <TableHead>Proveedor</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entradas.map((entrada) => (
+                    <TableRow key={entrada.id}>
+                      <TableCell className="font-medium text-slate-700">
+                        {productos.find((p) => p.id === entrada.productoId)?.nombre ?? 'Prenda'}
+                      </TableCell>
+                      <TableCell className="text-slate-500">
+                        {proveedores.find((p) => p.id === entrada.proveedorId)?.nombre ?? 'Proveedor'}
+                      </TableCell>
+                      <TableCell className="text-slate-500">{formatDate(entrada.fecha)}</TableCell>
+                      <TableCell className="text-right">+{entrada.cantidad}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

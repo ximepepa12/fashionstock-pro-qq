@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { StockBadge } from '@/components/dashboard/stock-badge'
-import { CATEGORIAS } from '@/lib/mock-data'
+import { CATEGORIAS, TALLAS } from '@/lib/mock-data'
 import { formatCOP } from '@/lib/format'
 import { useMockStore } from '@/lib/mock-store'
 import { toast } from 'sonner'
@@ -32,16 +32,23 @@ export default function InventarioPage() {
   const { session, productos, deleteProducto } = useMockStore()
   const [busqueda, setBusqueda] = useState('')
   const [categoria, setCategoria] = useState('todas')
+  const [talla, setTalla] = useState('todas')
 
   const esAdmin = session?.rol === 'Administrador'
 
   const filtrados = useMemo(() => {
+    const criterio = busqueda.trim().toLowerCase()
     return productos.filter((producto) => {
-      const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.trim().toLowerCase())
+      const coincideBusqueda =
+        !criterio ||
+        producto.nombre.toLowerCase().includes(criterio) ||
+        producto.categoria.toLowerCase().includes(criterio) ||
+        producto.talla.toLowerCase().includes(criterio)
       const coincideCategoria = categoria === 'todas' || producto.categoria === categoria
-      return coincideBusqueda && coincideCategoria
+      const coincideTalla = talla === 'todas' || producto.talla === talla
+      return coincideBusqueda && coincideCategoria && coincideTalla
     })
-  }, [productos, busqueda, categoria])
+  }, [productos, busqueda, categoria, talla])
 
   function handleDelete(id: string, nombre: string) {
     deleteProducto(id)
@@ -66,10 +73,10 @@ export default function InventarioPage() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          <Input placeholder="Buscar prenda por nombre" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por nombre, categoría o talla" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} className="pl-9" />
         </div>
         <Select value={categoria} onValueChange={(value) => setCategoria(value ?? 'todas')}>
-          <SelectTrigger className="w-full sm:w-56">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Categoría" />
           </SelectTrigger>
           <SelectContent>
@@ -77,6 +84,19 @@ export default function InventarioPage() {
             {CATEGORIAS.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={talla} onValueChange={(value) => setTalla(value ?? 'todas')}>
+          <SelectTrigger className="w-full sm:w-36">
+            <SelectValue placeholder="Talla" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas las tallas</SelectItem>
+            {TALLAS.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t}
               </SelectItem>
             ))}
           </SelectContent>
@@ -90,14 +110,15 @@ export default function InventarioPage() {
               <EmptyMedia variant="icon">
                 <Boxes />
               </EmptyMedia>
-              <EmptyTitle>No se encontraron prendas</EmptyTitle>
-              <EmptyDescription>Ajusta la búsqueda o el filtro de categoría para ver otros resultados.</EmptyDescription>
+              <EmptyTitle>No se encontraron prendas con ese criterio.</EmptyTitle>
+              <EmptyDescription>Prueba con otro nombre, categoría o talla.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Id</TableHead>
                 <TableHead>Prenda</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Talla</TableHead>
@@ -111,6 +132,7 @@ export default function InventarioPage() {
             <TableBody>
               {filtrados.map((producto) => (
                 <TableRow key={producto.id}>
+                  <TableCell className="font-mono text-xs text-slate-400">{producto.id}</TableCell>
                   <TableCell>
                     <Link href={`/dashboard/productos/${producto.id}`} className="font-medium text-slate-800 hover:text-[#4f46e5]">
                       {producto.nombre}

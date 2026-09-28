@@ -22,6 +22,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [errorCredenciales, setErrorCredenciales] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function SignInPage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+    setErrorCredenciales(false)
 
     const usuarioLimpio = usuario.trim()
     if (!usuarioLimpio || !password) {
@@ -46,7 +48,8 @@ export default function SignInPage() {
     const resultado = login(usuarioLimpio, password)
     setLoading(false)
     if (!resultado.ok) {
-      setError(resultado.error ?? 'No se pudo iniciar sesión.')
+      setErrorCredenciales(true)
+      setError(resultado.error ?? 'El usuario o la contraseña no son correctos.')
       return
     }
     router.push('/dashboard')
@@ -56,12 +59,14 @@ export default function SignInPage() {
     setUsuario(usuarioDemo)
     setPassword('123456')
     setError('')
+    setErrorCredenciales(false)
   }
 
   function verEjemploError() {
     setUsuario('usuario@fashionstock.pro')
     setPassword('clave-incorrecta')
-    setError('')
+    setErrorCredenciales(true)
+    setError('Usuario o contraseña incorrectos. Verifica tus credenciales e intenta de nuevo.')
   }
 
   return (
@@ -86,6 +91,7 @@ export default function SignInPage() {
           >
             <span className="text-slate-600">
               <span className="font-medium text-slate-800">admin</span> / 123456
+              <span className="mt-0.5 block text-xs text-slate-400">o admin@fashionstock.pro</span>
             </span>
             <span className="text-xs font-semibold text-[#4f46e5]">Administrador</span>
           </button>
@@ -96,6 +102,7 @@ export default function SignInPage() {
           >
             <span className="text-slate-600">
               <span className="font-medium text-slate-800">empleado</span> / 123456
+              <span className="mt-0.5 block text-xs text-slate-400">o empleado@fashionstock.pro</span>
             </span>
             <span className="text-xs font-semibold text-[#ff6b8b]">Empleado</span>
           </button>
@@ -110,8 +117,8 @@ export default function SignInPage() {
           <div className="flex items-start gap-3">
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
             <div>
-              <p className="font-semibold">No se pudo iniciar sesión</p>
-              <p className="mt-0.5">{error}</p>
+              {errorCredenciales && <p className="font-semibold">No se pudo iniciar sesión</p>}
+              <p className={errorCredenciales ? 'mt-0.5' : undefined}>{error}</p>
             </div>
           </div>
         </div>
@@ -167,7 +174,7 @@ export default function SignInPage() {
       </form>
       <p className="mt-7 text-center text-sm text-slate-500">
         ¿No tienes una cuenta?{' '}
-        <Link href="/sign-up" className="font-semibold text-[#4f46e5] hover:underline">
+        <Link href="/registro" className="font-semibold text-[#4f46e5] hover:underline">
           Crea una aquí
         </Link>
       </p>

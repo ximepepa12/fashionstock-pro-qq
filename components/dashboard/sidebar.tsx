@@ -33,11 +33,16 @@ const NAV_ITEMS = [
   { href: '/dashboard/reportes', label: 'Reportes', icon: BarChart3, roles: ['Administrador'] as Rol[] },
 ]
 
-export function DashboardSidebar({ rol }: { rol: Rol }) {
+export function DashboardSidebar({ rol, className }: { rol: Rol; className?: string }) {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-slate-100 bg-[#fbfbfe] lg:flex">
+    <aside
+      className={cn(
+        'h-screen w-64 shrink-0 flex-col border-r border-slate-100 bg-[#fbfbfe]',
+        className ?? 'hidden lg:flex',
+      )}
+    >
       <div className="px-5 py-6">
         <Link href="/dashboard">
           <Logo />

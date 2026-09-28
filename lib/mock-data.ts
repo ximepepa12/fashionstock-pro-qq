@@ -98,9 +98,15 @@ export interface Compra {
 }
 
 export const CATEGORIAS = ['Camisetas', 'Pantalones', 'Vestidos', 'Chaquetas', 'Accesorios', 'Calzado'] as const
-export const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'Única', '28', '30', '32', '34', '36', '38'] as const
+export const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'Única', '28', '30', '32', '34', '36', '38', '40'] as const
 
 export const IVA_PORCENTAJE = 0.19
+
+/** Correos equivalentes a las cuentas demo de usuario corto. */
+export const LOGIN_ALIASES: Record<string, string> = {
+  'admin@fashionstock.pro': 'admin',
+  'empleado@fashionstock.pro': 'empleado',
+}
 
 export function seedUsuarios(): Usuario[] {
   return [
@@ -147,7 +153,7 @@ export function seedProveedores(): Proveedor[] {
     { id: 'prov-1', nombre: 'Textiles Andinos S.A.S.', nit: '900123456-1', telefono: '6068801234', email: 'ventas@textilesandinos.com', activo: true },
     { id: 'prov-2', nombre: 'Moda Pacífico', nit: '900456789-2', telefono: '6023456789', email: 'contacto@modapacifico.com', activo: true },
     { id: 'prov-3', nombre: 'Calzado El Roble', nit: '900789123-3', telefono: '6042345566', email: 'pedidos@calzadoelroble.com', activo: true },
-    { id: 'prov-4', nombre: 'Accesorios Luna', nit: '900321654-4', telefono: '6017894455', email: 'info@accesorioslun a.com', activo: true },
+    { id: 'prov-4', nombre: 'Accesorios Luna', nit: '900321654-4', telefono: '6017894455', email: 'info@accesoriosluna.com', activo: true },
   ]
 }
 

@@ -24,7 +24,7 @@ export function DashboardTopbar({ session }: { session: SessionUsuario }) {
 
   function handleLogout() {
     logout()
-    router.push('/sign-in')
+    router.push('/iniciar-sesion')
   }
 
   return (
@@ -41,7 +41,7 @@ export function DashboardTopbar({ session }: { session: SessionUsuario }) {
             <SheetHeader className="sr-only">
               <SheetTitle>Menú de navegación</SheetTitle>
             </SheetHeader>
-            <DashboardSidebar rol={session.rol} />
+            <DashboardSidebar rol={session.rol} className="flex h-full w-full" />
           </SheetContent>
         </Sheet>
         <p className="hidden text-sm text-slate-400 sm:block">Prototipo visual con datos de demostración</p>

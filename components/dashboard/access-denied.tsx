@@ -8,8 +8,8 @@ export function AccessDenied() {
         <EmptyMedia variant="icon" className="bg-[#ff6b8b]/15 text-[#c9365b]">
           <ShieldAlert />
         </EmptyMedia>
-        <EmptyTitle>No tiene permisos para realizar esta acción</EmptyTitle>
-        <EmptyDescription>Contacte al administrador si necesita acceso a esta sección.</EmptyDescription>
+        <EmptyTitle>No tiene permisos para realizar esta acción. Contacte al administrador.</EmptyTitle>
+        <EmptyDescription>Esta sección está reservada para el administrador del sistema.</EmptyDescription>
       </EmptyHeader>
     </Empty>
   )

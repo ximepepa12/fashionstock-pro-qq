@@ -36,7 +36,7 @@ export default function RecuperarContrasenaPage() {
       description="Ingresa tu correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña."
     >
       <div className="mb-8">
-        <Link href="/sign-in" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-[#4f46e5]">
+        <Link href="/iniciar-sesion" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-[#4f46e5]">
           <ArrowLeft className="size-4" />
           Volver a iniciar sesión
         </Link>
@@ -61,7 +61,7 @@ export default function RecuperarContrasenaPage() {
             variant="outline"
             className="w-fit border-emerald-300 text-emerald-700 hover:bg-emerald-100"
             nativeButton={false}
-            render={<Link href="/sign-in" />}
+            render={<Link href="/iniciar-sesion" />}
           >
             Volver a iniciar sesión
           </Button>

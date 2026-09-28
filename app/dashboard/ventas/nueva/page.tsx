@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PageHeader } from '@/components/dashboard/page-header'
-import { IVA_PORCENTAJE, type LineaVenta } from '@/lib/mock-data'
+import { IVA_PORCENTAJE, type LineaVenta, type Venta } from '@/lib/mock-data'
 import { formatCOP } from '@/lib/format'
 import { useMockStore } from '@/lib/mock-store'
 import { toast } from 'sonner'
+import { FacturaVisual } from '@/components/dashboard/factura'
 
 export default function NuevaVentaPage() {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function NuevaVentaPage() {
   const [productoSeleccionado, setProductoSeleccionado] = useState('')
   const [lineas, setLineas] = useState<LineaVenta[]>([])
   const [error, setError] = useState('')
+  const [factura, setFactura] = useState<Venta | null>(null)
 
   const subtotal = useMemo(() => lineas.reduce((sum, l) => sum + l.cantidad * l.precioUnitario, 0), [lineas])
   const iva = Math.round(subtotal * IVA_PORCENTAJE)
@@ -74,8 +76,25 @@ export default function NuevaVentaPage() {
       setError(resultado.error ?? 'No se pudo registrar la venta.')
       return
     }
-    toast.success(`Venta ${resultado.venta?.numeroFactura} registrada correctamente.`)
-    router.push('/dashboard/ventas')
+    toast.success('Venta registrada')
+    if (resultado.venta) setFactura(resultado.venta)
+  }
+
+  if (factura) {
+    return (
+      <div>
+        <PageHeader title="Factura generada" description="La venta descontó el inventario y quedó lista para consulta." />
+        <div className="mb-4 flex gap-2">
+          <Button variant="outline" onClick={() => router.push('/dashboard/ventas')}>
+            Ir al historial
+          </Button>
+          <Button className="bg-[#4f46e5] hover:bg-[#4338ca]" onClick={() => { setFactura(null); setLineas([]) }}>
+            Registrar otra venta
+          </Button>
+        </div>
+        <FacturaVisual venta={factura} />
+      </div>
+    )
   }
 
   return (
@@ -190,7 +209,7 @@ export default function NuevaVentaPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mostrador">Venta de mostrador</SelectItem>
+                  <SelectItem value="mostrador">Consumidor final</SelectItem>
                   {clientes.map((cliente) => (
                     <SelectItem key={cliente.id} value={cliente.id}>
                       {cliente.nombre}

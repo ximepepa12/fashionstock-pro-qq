@@ -43,7 +43,8 @@ export default function SalidasPage() {
       setError(resultado.error ?? 'No se pudo registrar la salida.')
       return
     }
-    toast.success('Salida de mercancía registrada.')
+    const producto = productos.find((p) => p.id === productoId)
+    toast.success(`Inventario actualizado. Nueva cantidad: ${(producto?.stock ?? 0) - cantidad} unidades.`)
     event.currentTarget.reset()
     setProductoId('')
   }
@@ -70,7 +71,7 @@ export default function SalidasPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Devolución a proveedor">Devolución a proveedor</SelectItem>
-                    <SelectItem value="Venta">Venta directa</SelectItem>
+                    <SelectItem value="Venta">Venta</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -48,14 +48,14 @@ export default function LandingPage() {
               variant="ghost"
               className="text-slate-600"
               nativeButton={false}
-              render={<Link href="/sign-in" />}
+              render={<Link href="/iniciar-sesion" />}
             >
               Iniciar sesión
             </Button>
             <Button
               className="bg-[#4f46e5] hover:bg-[#4338ca]"
               nativeButton={false}
-              render={<Link href="/sign-up" />}
+              render={<Link href="/registro" />}
             >
               Crear cuenta
             </Button>
@@ -80,7 +80,7 @@ export default function LandingPage() {
               size="lg"
               className="bg-white text-[#4f46e5] hover:bg-white/90"
               nativeButton={false}
-              render={<Link href="/sign-up" />}
+              render={<Link href="/registro" />}
             >
               Crear cuenta gratis
               <ArrowRight data-icon="inline-end" />
@@ -90,7 +90,7 @@ export default function LandingPage() {
               variant="outline"
               className="border-white/40 bg-white/10 text-white hover:bg-white/20"
               nativeButton={false}
-              render={<Link href="/sign-in" />}
+              render={<Link href="/iniciar-sesion" />}
             >
               Ya tengo cuenta
             </Button>
@@ -132,7 +132,7 @@ export default function LandingPage() {
             size="lg"
             className="bg-[#4f46e5] hover:bg-[#4338ca]"
             nativeButton={false}
-            render={<Link href="/sign-in" />}
+            render={<Link href="/iniciar-sesion" />}
           >
             Ir al inicio de sesión
             <ArrowRight data-icon="inline-end" />
@@ -143,7 +143,15 @@ export default function LandingPage() {
       <footer className="border-t border-slate-100 px-6 py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-sm text-slate-400 sm:flex-row">
           <span>© 2026 FashionStock Pro</span>
-          <span>Prototipo visual con datos de demostración</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/identidad-visual" className="hover:text-[#4f46e5]">
+              Identidad visual
+            </Link>
+            <Link href="/diagrama" className="hover:text-[#4f46e5]">
+              Diagrama de acceso
+            </Link>
+            <span>Prototipo visual con datos de demostración</span>
+          </div>
         </div>
       </footer>
     </main>
